@@ -1,0 +1,50 @@
+module AtprotoAuth
+  module State
+    class Session
+      @session_id: String
+      @state_token: String
+      @client_id: String
+      @scope: String
+      @auth_server: AuthorizationServer?
+      @did: String?
+      @pkce_verifier: String
+      @pkce_challenge: String
+      @tokens: TokenSet?
+
+      include MonitorMixin
+
+      attr_reader session_id: String
+      attr_reader state_token: String
+      attr_reader client_id: String
+      attr_reader scope: String
+      attr_reader pkce_verifier: String
+      attr_reader pkce_challenge: String
+      attr_reader auth_server: AuthorizationServer?
+      attr_reader did: String?
+      attr_reader tokens: TokenSet?
+
+      def initialize: (
+          client_id: String,
+          scope: String,
+          ?auth_server: AuthorizationServer?,
+          ?did: String?
+        ) -> void
+
+      def authorization_server=: (AuthorizationServer server) -> void
+
+      def did=: (String did) -> void
+
+      def tokens=: (TokenSet tokens) -> void
+
+      def authorized?: () -> bool
+
+      def renewable?: () -> bool
+
+      def validate_state: (String state) -> bool
+
+      private
+
+      def secure_compare: (String str1, String str2) -> bool
+    end
+  end
+end

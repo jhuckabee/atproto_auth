@@ -1,0 +1,42 @@
+module AtprotoAuth
+  module DPoP
+    class ProofGenerator
+      @key_manager: AtprotoAuth::DPoP::KeyManager
+
+      class ProofError < AtprotoAuth::Error
+      end
+
+      attr_reader key_manager: AtprotoAuth::DPoP::KeyManager
+
+      def initialize: (AtprotoAuth::DPoP::KeyManager key_manager) -> void
+
+      def generate: (
+          http_method: String,
+          http_uri: String,
+          ?nonce: String?,
+          ?access_token: String?,
+          ?ath: bool?
+        ) -> String
+
+      private
+
+      def validate_inputs!: (String http_method, String http_uri) -> void
+
+      def build_header: () -> { typ: "dpop+jwt", alg: "ES256", jwk: Hash[String, untyped] }
+
+      def build_payload: (
+          http_method: String,
+          http_uri: String,
+          nonce: String?,
+          access_token: String?,
+          include_ath: bool
+        ) -> Hash[Symbol, untyped]
+
+      def normalize_uri: (String uri) -> String
+
+      def generate_access_token_hash: (String access_token) -> String
+
+      def encode_jwt_segments: (Hash[Symbol, untyped] header, Hash[Symbol, untyped] payload) -> String
+    end
+  end
+end

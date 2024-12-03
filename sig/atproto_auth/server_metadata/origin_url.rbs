@@ -1,0 +1,21 @@
+module AtprotoAuth
+  module ServerMetadata
+    class OriginUrl
+      @url: String
+      @uri: URI
+
+      attr_reader url: String
+      attr_reader uri: URI
+
+      def initialize: (String url) -> void
+
+      def valid?: () -> bool
+
+      private
+
+      def uses_https_scheme?: () -> bool
+      def has_root_path?: () -> bool
+      def has_explicit_port?: () -> bool
+    end
+  end
+end

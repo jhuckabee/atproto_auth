@@ -1,0 +1,58 @@
+module AtprotoAuth
+  class HttpClient
+    @timeout: Integer
+
+    @verify_ssl: bool
+
+    FORBIDDEN_IP_RANGES: ::Array[IPAddr]
+
+    ALLOWED_SCHEMES: ::Array[String]
+
+    DEFAULT_TIMEOUT: Integer
+
+    MAX_REDIRECTS: Integer
+
+    MAX_RESPONSE_SIZE: Integer
+
+    class SSRFError < Error
+    end
+
+    class HttpError < Error
+      @response: ::Net::HTTPResponse?
+
+      attr_reader response: ::Net::HTTPResponse?
+
+      def initialize: (String message, ::Net::HTTPResponse? response) -> void
+    end
+
+    def initialize: (?timeout: Integer, ?verify_ssl: bool) -> void
+
+    def get: (String url, ?::Hash[String, String] headers) -> { status: Integer, headers: ::Hash[String, String], body: String }
+
+    private
+
+    def validate_uri!: (String url) -> URI
+
+    def validate_ip!: (URI uri) -> nil
+
+    def resolve_ip: (String hostname) -> IPAddr
+
+    def forbidden_ip?: (IPAddr ip) -> bool
+
+    def make_request: (URI uri, ?::Hash[String, String] headers) -> ::Net::HTTPResponse
+
+    def configure_http_client!: (::Net::HTTP http) -> void
+
+    def add_security_headers!: (::Net::HTTP::Get request, ::Hash[String, String] headers) -> void
+
+    def handle_redirect: (URI original_uri, ::Net::HTTPResponse response, ::Hash[String, String] headers, ?::Integer redirect_count) -> ::Net::HTTPResponse
+
+    def validate_response!: (::Net::HTTPResponse response) -> void
+
+    def check_success_status!: (::Net::HTTPResponse response) -> nil
+
+    def check_content_length!: (::Net::HTTPResponse response) -> nil
+
+    def check_content_type!: (::Net::HTTPResponse response) -> nil
+  end
+end

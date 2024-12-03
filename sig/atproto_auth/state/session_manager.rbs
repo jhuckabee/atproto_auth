@@ -1,0 +1,26 @@
+module AtprotoAuth
+  module State
+    class SessionManager
+      @sessions: Hash[String, Session]
+
+      include MonitorMixin
+
+      def initialize: () -> void
+
+      def create_session: (
+          client_id: String,
+          scope: String,
+          ?auth_server: ServerMetadata::AuthorizationServer?,
+          ?did: String?
+        ) -> Session
+
+      def get_session: (String session_id) -> Session?
+
+      def get_session_by_state: (String state) -> Session?
+
+      def remove_session: (String session_id) -> void
+
+      def cleanup_expired: () -> void
+    end
+  end
+end

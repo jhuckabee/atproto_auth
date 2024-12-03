@@ -1,23 +1,51 @@
 PATH
   remote: .
   specs:
-    atproto_auth (0.1.0)
+    atproto_auth (0.0.1)
+      jose (~> 1.2)
+      jwt (~> 2.9)
 
 GEM
   remote: https://rubygems.org/
   specs:
+    addressable (2.8.7)
+      public_suffix (>= 2.0.2, < 7.0)
     ast (2.4.2)
+    base64 (0.2.0)
+    bigdecimal (3.1.8)
+    concurrent-ruby (1.3.4)
+    crack (1.0.0)
+      bigdecimal
+      rexml
+    hashdiff (1.1.2)
+    immutable-ruby (0.2.0)
+      concurrent-ruby (~> 1.1)
+      sorted_set (~> 1.0)
+    jose (1.2.0)
+      base64
+      immutable-ruby
     json (2.8.2)
+    jwt (2.9.3)
+      base64
     language_server-protocol (3.17.0.3)
+    logger (1.6.2)
+    minitest (5.25.2)
+    mocha (2.6.1)
+      ruby2_keywords (>= 0.0.5)
+    mutex_m (0.3.0)
     parallel (1.26.3)
     parser (3.3.6.0)
       ast (~> 2.4.1)
       racc
-    power_assert (2.0.4)
+    public_suffix (6.0.1)
     racc (1.8.1)
     rainbow (3.1.1)
     rake (13.2.1)
+    rbs (3.6.1)
+      logger
+    rbtree (0.4.6)
     regexp_parser (2.9.3)
+    rexml (3.3.9)
     rubocop (1.69.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
@@ -31,11 +59,18 @@ GEM
     rubocop-ast (1.36.2)
       parser (>= 3.3.1.0)
     ruby-progressbar (1.13.0)
-    test-unit (3.6.4)
-      power_assert
+    ruby2_keywords (0.0.5)
+    set (1.1.1)
+    sorted_set (1.0.3)
+      rbtree
+      set (~> 1.0)
     unicode-display_width (3.1.2)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
+    webmock (3.24.0)
+      addressable (>= 2.8.0)
+      crack (>= 0.3.2)
+      hashdiff (>= 0.4.0, < 2.0.0)
 
 PLATFORMS
   arm64-darwin-24
@@ -43,9 +78,13 @@ PLATFORMS
 
 DEPENDENCIES
   atproto_auth!
+  minitest (~> 5.25)
+  mocha (~> 2.6)
+  mutex_m (~> 0.3)
   rake (~> 13.0)
+  rbs (~> 3.6)
   rubocop (~> 1.21)
-  test-unit (~> 3.0)
+  webmock (~> 3.24)
 
 BUNDLED WITH
    2.5.23

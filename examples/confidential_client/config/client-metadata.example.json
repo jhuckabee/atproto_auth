@@ -1,0 +1,25 @@
+{
+  "client_id": "https://YOUR_DOMAIN_HERE/client-metadata.json",
+  "client_name": "AT Protocol OAuth Ruby Example",
+  "redirect_uris": ["https://YOUR_DOMAIN_HERE/callback"],
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "scope": "atproto",
+  "token_endpoint_auth_method": "private_key_jwt",
+  "token_endpoint_auth_signing_alg": "ES256",
+  "application_type": "web",
+  "dpop_bound_access_tokens": true,
+  "jwks": {
+    "keys": [
+      {
+        "use": "sig",
+        "kid": "key-1",
+        "x": "...",
+        "crv": "P-256",
+        "d": "...",
+        "kty": "EC",
+        "y": "..."
+      }
+    ]
+  }
+}

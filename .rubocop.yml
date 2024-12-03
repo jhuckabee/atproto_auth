@@ -1,5 +1,13 @@
 AllCops:
+  NewCops: enable
+  SuggestExtensions: false
   TargetRubyVersion: 3.0
+
+Metrics/ClassLength:
+  Max: 500
+
+Metrics/MethodLength:
+  Max: 50
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes

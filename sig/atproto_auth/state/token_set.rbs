@@ -1,0 +1,40 @@
+module AtprotoAuth
+  module State
+    class TokenSet
+      @access_token: String
+      @refresh_token: String?
+      @token_type: String
+      @scope: String
+      @sub: String
+      @expires_at: Time
+
+      attr_reader access_token: String
+      attr_reader refresh_token: String?
+      attr_reader token_type: String
+      attr_reader scope: String
+      attr_reader expires_at: Time
+      attr_reader sub: String
+
+      def initialize: (
+          access_token: String,
+          token_type: String,
+          expires_in: Integer,
+          scope: String,
+          sub: String,
+          ?refresh_token: String?
+        ) -> void
+
+      def renewable?: () -> bool
+
+      def expired?: (?Integer buffer) -> bool
+
+      private
+
+      def validate_token_type!: (String type) -> void
+
+      def validate_required!: (String name, String? value) -> void
+
+      def validate_expires_in!: (Integer expires_in) -> void
+    end
+  end
+end

@@ -1,0 +1,73 @@
+module AtprotoAuth
+  module PAR
+    class Request
+      @response_type: String
+      @client_id: String
+      @redirect_uri: String
+      @code_challenge: String
+      @code_challenge_method: String
+      @state: String
+      @scope: String
+      @login_hint: String?
+      @nonce: String?
+      @dpop_proof: String?
+      @client_assertion_type: String?
+      @client_assertion: String?
+
+      class Configuration
+        attr_accessor client_id: String
+        attr_accessor redirect_uri: String
+        attr_accessor code_challenge: String
+        attr_accessor code_challenge_method: String
+        attr_accessor state: String
+        attr_accessor scope: String
+        attr_accessor login_hint: String?
+        attr_accessor nonce: String?
+        attr_accessor dpop_proof: String?
+        attr_accessor client_assertion_type: String?
+        attr_accessor client_assertion: String?
+      end
+
+      attr_reader response_type: String
+      attr_reader client_id: String
+      attr_reader code_challenge: String
+      attr_reader code_challenge_method: String
+      attr_reader state: String
+      attr_reader redirect_uri: String
+      attr_reader scope: String
+      attr_reader login_hint: String?
+      attr_reader nonce: String?
+      attr_reader dpop_proof: String?
+      attr_reader client_assertion_type: String?
+      attr_reader client_assertion: String?
+
+      def self.build: () { (Configuration) -> void } -> Request
+
+      def initialize: (Configuration config) -> void
+
+      def to_form: () -> String
+
+      private
+
+      def build_params: () -> Hash[String, String]
+
+      def add_optional_params: (Hash[String, String] params) -> void
+
+      def add_client_auth_params: (Hash[String, String] params) -> void
+
+      def validate!: () -> void
+
+      def validate_required_params!: () -> void
+
+      def validate_response_type!: () -> void
+
+      def validate_code_challenge_method!: () -> void
+
+      def validate_scope!: () -> void
+
+      def validate_client_auth!: () -> void
+
+      def encode_params: (Hash[String, String]) -> String
+    end
+  end
+end

@@ -1,0 +1,140 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "find"
+require "pathname"
+
+# SnapshotGenerator creates a comprehensive text-based representation of a project's
+# structure and contents. It generates a single file that includes:
+#
+# 1. A tree-style visualization of the project's directory structure
+# 2. The complete contents of all text-based files in the project
+#
+# Each file's contents are preceded by its relative path and followed by a
+# separator line. Binary files and common development artifacts (like .git
+# directories, temporary files, etc.) are automatically excluded.
+#
+# Usage:
+#   generator = SnapshotGenerator.new('/path/to/project')
+#   generator.generate_documentation
+#
+# The generated snapshot is useful for:
+# - Creating complete project documentation
+# - Sharing code in environments where direct file access is limited
+# - Capturing project state for archival or review purposes
+# - Facilitating code reviews of entire projects
+#
+class SnapshotGenerator
+  FILE_NAME = "PROJECT_STRUCTURE.txt"
+
+  IGNORE_PATTERNS = [
+    %r{\.idea/},
+    %r{\.git/},
+    %r{\.github/},
+    %r{\.bundle/},
+    /\.DS_Store/,
+    /\.gitignore/,
+    /\.rspec/,
+    /\.rubocop/,
+    /\.byebug/,
+    %r{tmp/},
+    %r{log/},
+    %r{coverage/},
+    %r{pkg/},
+    /\.gem$/,
+    /\.sqlite3$/,
+    /\.log$/,
+    /\.lock$/,
+    /#{FILE_NAME}/
+  ].freeze
+
+  TEXT_FILE_EXTENSIONS = %w[
+    .rb .ru .rake .yml .yaml .json .md .txt .gemspec
+    .erb .haml .slim .css .scss .js .coffee .env
+    .gitignore .rspec .rubocop .travis.yml .circle
+    Gemfile Rakefile README LICENSE Dockerfile
+  ].freeze
+
+  def initialize(root_path)
+    @root_path = Pathname.new(root_path)
+    @output_file = @root_path.join(FILE_NAME)
+  end
+
+  def generate_documentation
+    File.open(@output_file, "w") do |file|
+      write_directory_tree(file)
+      file.puts("\n\n")
+      write_file_contents(file)
+    end
+    puts "Documentation generated at #{@output_file}"
+  end
+
+  private
+
+  def write_directory_tree(file)
+    file.puts("Project Structure:\n")
+    tree = generate_tree_structure(@root_path)
+    file.puts(tree)
+  end
+
+  def generate_tree_structure(path, prefix = "") # rubocop:disable Metrics/AbcSize
+    entries = Dir.entries(path).sort
+    entries.delete(".")
+    entries.delete("..")
+
+    tree = ""
+    entries.each_with_index do |entry, index|
+      next if ignored_path?("#{path}/#{entry}")
+
+      is_last = (index == entries.size - 1)
+      connection = is_last ? "└── " : "├── "
+
+      full_path = path.join(entry)
+      tree += "#{prefix}#{connection}#{entry}\n"
+
+      if File.directory?(full_path)
+        new_prefix = prefix + (is_last ? "    " : "│   ")
+        tree += generate_tree_structure(full_path, new_prefix)
+      end
+    end
+    tree
+  end
+
+  def write_file_contents(file)
+    Find.find(@root_path) do |path|
+      next if File.directory?(path)
+      next if ignored_path?(path)
+      next unless text_file?(path)
+
+      relative_path = Pathname.new(path).relative_path_from(@root_path)
+      file.puts("#{relative_path}:")
+      file.puts(File.read(path))
+      file.puts("-----\n\n")
+    end
+  end
+
+  def ignored_path?(path)
+    IGNORE_PATTERNS.any? { |pattern| path.match?(pattern) }
+  end
+
+  def text_file?(path)
+    TEXT_FILE_EXTENSIONS.any? { |ext| path.downcase.end_with?(ext.downcase) } ||
+      text_file_content?(path)
+  end
+
+  def text_file_content?(path)
+    return false unless File.file?(path)
+
+    begin
+      File.read(path, 512).encode("UTF-8", "binary", invalid: :replace, undef: :replace, replace: "")
+          .match?(/\A[\r\n\t\f\x20-\x7E]*\z/)
+    rescue StandardError
+      false
+    end
+  end
+end
+
+if __FILE__ == $PROGRAM_NAME
+  root_path = ARGV[0] || Dir.pwd
+  SnapshotGenerator.new(root_path).generate_documentation
+end

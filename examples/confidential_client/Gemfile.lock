@@ -1,0 +1,84 @@
+PATH
+  remote: ../..
+  specs:
+    atproto_auth (0.0.1)
+      jose (~> 1.2)
+      jwt (~> 2.9)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    base64 (0.2.0)
+    concurrent-ruby (1.3.4)
+    dotenv (3.1.4)
+    faraday (2.12.1)
+      faraday-net_http (>= 2.0, < 3.5)
+      json
+      logger
+    faraday-net_http (3.4.0)
+      net-http (>= 0.5.0)
+    immutable-ruby (0.2.0)
+      concurrent-ruby (~> 1.1)
+      sorted_set (~> 1.0)
+    jose (1.2.0)
+      base64
+      immutable-ruby
+    json (2.9.0)
+    jwt (2.9.3)
+      base64
+    logger (1.6.2)
+    multi_json (1.15.0)
+    mustermann (3.0.3)
+      ruby2_keywords (~> 0.0.1)
+    net-http (0.6.0)
+      uri
+    nio4r (2.7.4)
+    puma (6.5.0)
+      nio4r (~> 2.0)
+    rack (3.1.8)
+    rack-protection (4.1.1)
+      base64 (>= 0.1.0)
+      logger (>= 1.6.0)
+      rack (>= 3.0.0, < 4)
+    rack-session (2.0.0)
+      rack (>= 3.0.0)
+    rackup (2.2.1)
+      rack (>= 3)
+    rbtree (0.4.6)
+    ruby2_keywords (0.0.5)
+    set (1.1.1)
+    sinatra (4.1.1)
+      logger (>= 1.6.0)
+      mustermann (~> 3.0)
+      rack (>= 3.0.0, < 4)
+      rack-protection (= 4.1.1)
+      rack-session (>= 2.0.0, < 3)
+      tilt (~> 2.0)
+    sinatra-contrib (4.1.1)
+      multi_json (>= 0.0.2)
+      mustermann (~> 3.0)
+      rack-protection (= 4.1.1)
+      sinatra (= 4.1.1)
+      tilt (~> 2.0)
+    sorted_set (1.0.3)
+      rbtree
+      set (~> 1.0)
+    tilt (2.4.0)
+    uri (1.0.2)
+
+PLATFORMS
+  arm64-darwin-24
+  ruby
+
+DEPENDENCIES
+  atproto_auth!
+  dotenv
+  faraday
+  json
+  puma
+  rackup
+  sinatra
+  sinatra-contrib
+
+BUNDLED WITH
+   2.5.23

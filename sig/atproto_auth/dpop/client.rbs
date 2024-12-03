@@ -1,0 +1,38 @@
+module AtprotoAuth
+  module DPoP
+    class Client
+      @key_manager: untyped
+
+      @nonce_manager: untyped
+
+      @proof_generator: untyped
+
+      class Error < AtprotoAuth::Error
+      end
+
+      attr_reader key_manager: untyped
+
+      attr_reader proof_generator: untyped
+
+      attr_reader nonce_manager: untyped
+
+      def initialize: (?key_manager: untyped?, ?nonce_ttl: untyped?) -> void
+
+      def generate_proof: (http_method: untyped, http_uri: untyped, ?access_token: untyped?) -> untyped
+
+      def process_response: (untyped response_headers, untyped server_url) -> untyped
+
+      def request_headers: (untyped proof) -> { "DPoP" => untyped }
+
+      def public_key: () -> untyped
+
+      def export_key: (?include_private: bool) -> untyped
+
+      private
+
+      def extract_nonce: (untyped headers) -> untyped
+
+      def origin_for_uri: (untyped uri) -> untyped
+    end
+  end
+end
