@@ -1,0 +1,69 @@
+module AtprotoAuth
+  module ServerMetadata
+    class AuthorizationServer
+      @issuer: String
+      @authorization_endpoint: String
+      @token_endpoint: String
+      @pushed_authorization_request_endpoint: String
+      @response_types_supported: Array[String]
+      @grant_types_supported: Array[String]
+      @code_challenge_methods_supported: Array[String]
+      @token_endpoint_auth_methods_supported: Array[String]
+      @token_endpoint_auth_signing_alg_values_supported: Array[String]
+      @scopes_supported: Array[String]
+      @dpop_signing_alg_values_supported: Array[String]
+
+      REQUIRED_FIELDS: ::Array["issuer" | "authorization_endpoint" | "token_endpoint" | "response_types_supported" | "grant_types_supported" | "code_challenge_methods_supported" | "token_endpoint_auth_methods_supported" | "token_endpoint_auth_signing_alg_values_supported" | "scopes_supported" | "dpop_signing_alg_values_supported" | "pushed_authorization_request_endpoint"]
+
+      attr_reader issuer: String
+      attr_reader authorization_endpoint: String
+      attr_reader token_endpoint: String
+      attr_reader pushed_authorization_request_endpoint: String
+      attr_reader response_types_supported: Array[String]
+      attr_reader grant_types_supported: Array[String]
+      attr_reader code_challenge_methods_supported: Array[String]
+      attr_reader token_endpoint_auth_methods_supported: Array[String]
+      attr_reader token_endpoint_auth_signing_alg_values_supported: Array[String]
+      attr_reader scopes_supported: Array[String]
+      attr_reader dpop_signing_alg_values_supported: Array[String]
+
+      def initialize: (Hash[String, untyped] metadata) -> void
+
+      # Fetches and validates Authorization Server metadata from an issuer URL
+      # @param issuer [String] Authorization Server issuer URL
+      # @return [AuthorizationServer] new instance with fetched metadata
+      # @raise [InvalidAuthorizationServer] if metadata is invalid
+      def self.from_issuer: (String issuer) -> AuthorizationServer
+
+      private
+
+      def validate_and_set_metadata!: (Hash[String, untyped] metadata) -> void
+
+      def validate_issuer!: (String issuer) -> String
+
+      def validate_https_url!: (String url) -> String
+
+      def validate_response_types!: (Array[String] types) -> void
+
+      def validate_grant_types!: (Array[String] types) -> void
+
+      def validate_code_challenge_methods!: (Array[String] methods) -> void
+
+      def validate_token_endpoint_auth_methods!: (Array[String] methods) -> void
+
+      def validate_token_endpoint_auth_signing_algs!: (Array[String] algs) -> void
+
+      def validate_dpop_signing_algs!: (Array[String] algs) -> void
+
+      def validate_scopes!: (Array[String] scopes) -> void
+
+      def validate_boolean_field!: (Hash[String, untyped] metadata, String field, bool required_value) -> void
+
+      def self.fetch_metadata: (String issuer) -> Hash[Symbol, String]
+
+      def self.parse_metadata: (String body) -> Hash[String, untyped]
+
+      def self.validate_issuer!: (String metadata_issuer, String request_issuer) -> void
+    end
+  end
+end

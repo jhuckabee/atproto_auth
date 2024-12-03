@@ -1,0 +1,41 @@
+module AtprotoAuth
+  module Identity
+    class Resolver
+      @plc_directory: String
+
+      PLC_DIRECTORY_URL: String
+      DID_PLC_PREFIX: String
+      HANDLE_REGEX: ::Regexp
+
+      def initialize: (?plc_directory: String?) -> void
+
+      def resolve_handle: (String handle) -> Hash[Symbol, untyped]
+
+      def get_did_info: (String did) -> Hash[Symbol, untyped]
+
+      def verify_pds_binding: (String did, String pds_url) -> bool
+
+      def verify_issuer_binding: (String did, String issuer) -> bool
+
+      def verify_handle_binding: (String handle, String did) -> bool
+
+      private
+
+      def validate_handle!: (String handle) -> void
+
+      def validate_did!: (String did) -> void
+
+      def normalize_handle: (String handle) -> String
+
+      def resolve_handle_dns: (String _handle) -> nil
+
+      def resolve_handle_http: (String handle) -> Hash[Symbol, untyped]
+
+      def fetch_did_document: (String did) -> Hash[String, untyped]
+
+      def validate_pds_url!: (String url) -> void
+
+      def normalize_url: (String url) -> String
+    end
+  end
+end

@@ -1,4 +1,39 @@
+interface _HTTPClient
+  def get: (String, ?Hash[Symbol, untyped]) -> { status: Integer, body: String, headers: Hash[String, String] }
+  def post: (String, ?Hash[Symbol, untyped]) -> { status: Integer, body: String, headers: Hash[String, String] }
+  def put: (String, ?Hash[Symbol, untyped]) -> { status: Integer, body: String, headers: Hash[String, String] }
+  def delete: (String, ?Hash[Symbol, untyped]) -> { status: Integer, body: String, headers: Hash[String, String] }
+end
+
 module AtprotoAuth
-  VERSION: String
-  # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+  class Error < StandardError
+  end
+
+  class OAuthError
+    attr_reader error_code: String
+
+    def initialize: (String message, String error_code) -> void
+  end
+
+  class InvalidClientMetadata < OAuthError
+    def initialize: (String message) -> void
+  end
+
+  class InvalidAuthorizationServer < OAuthError
+    def initialize: (String message) -> void
+  end
+
+  class Configuration
+    attr_accessor default_token_lifetime: Integer
+    attr_accessor dpop_nonce_lifetime: Integer
+    attr_accessor http_client: _HTTPClient?
+
+    def initialize: () -> void
+  end
+
+  attr_writer self.configuration: Configuration
+
+  def self.configuration: () -> Configuration
+
+  def self.configure: () { (Configuration) -> untyped } -> Configuration
 end

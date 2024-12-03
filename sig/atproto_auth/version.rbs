@@ -1,0 +1,3 @@
+module AtprotoAuth
+  VERSION: String
+end

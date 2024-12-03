@@ -1,0 +1,48 @@
+module AtprotoAuth
+  module DPoP
+    class NonceManager
+      @ttl: Integer
+      @nonces: Hash[String, AtprotoAuth::DPoP::NonceManager::StoredNonce]
+      @monitor: Monitor
+
+      class NonceError < AtprotoAuth::Error
+      end
+
+      class StoredNonce
+        @value: String
+        @server_url: String
+        @timestamp: Integer
+
+        attr_reader value: String
+        attr_reader timestamp: Integer
+        attr_reader server_url: String
+
+        def initialize: (String value, String server_url) -> void
+
+        def expired?: (?Integer ttl) -> bool
+      end
+
+      DEFAULT_TTL: Integer
+
+      def initialize: (?ttl: Integer) -> void
+
+      def update: (nonce: String, server_url: String) -> void
+
+      def get: (String server_url) -> (nil | String)
+
+      def clear: (String server_url) -> void
+
+      def clear_all: () -> void
+
+      def server_urls: () -> Array[String]
+
+      def valid_nonce?: (String server_url) -> bool
+
+      private
+
+      def validate_inputs!: (String nonce, String server_url) -> void
+
+      def validate_server_url!: (String server_url) -> void
+    end
+  end
+end

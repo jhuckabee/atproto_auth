@@ -1,0 +1,33 @@
+module AtprotoAuth
+  module DPoP
+    class KeyManager
+      @keypair: JOSE::JWK
+
+      class KeyError < AtprotoAuth::Error
+      end
+
+      CURVE: String
+      ALGORITHM: String
+
+      attr_reader keypair: JOSE::JWK
+
+      def initialize: (?JOSE::JWK keypair) -> void
+
+      def generate_keypair: () -> JOSE::JWK
+
+      def public_jwk: () -> Hash[String, untyped]
+
+      def sign: (String data) -> String
+
+      def verify: (String signature, String data) -> bool
+
+      def to_jwk: (?include_private: bool) -> Hash[String, untyped]
+
+      def self.from_jwk: (Hash[String, untyped] jwk) -> AtprotoAuth::DPoP::KeyManager
+
+      private
+
+      def validate_keypair!: () -> void
+    end
+  end
+end

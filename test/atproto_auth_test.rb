@@ -2,14 +2,8 @@
 
 require "test_helper"
 
-class AtprotoAuthTest < Test::Unit::TestCase
-  test "VERSION" do
-    assert do
-      ::AtprotoAuth.const_defined?(:VERSION)
-    end
-  end
-
-  test "something useful" do
-    assert_equal("expected", "actual")
+describe AtprotoAuth do
+  it "has a VERSION constant defined" do
+    _(AtprotoAuth.const_defined?(:VERSION)).must_equal true
   end
 end

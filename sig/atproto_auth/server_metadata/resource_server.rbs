@@ -1,0 +1,27 @@
+module AtprotoAuth
+  module ServerMetadata
+    class ResourceServer
+      @authorization_servers: Array[String]
+
+      attr_reader authorization_servers: Array[String]
+
+      def initialize: (Hash[String, untyped] metadata) -> void
+
+      def self.from_url: (String url) -> ResourceServer
+
+      private
+
+      def validate_authorization_servers!: (Array[String] servers) -> Array[String]
+
+      def ensure_servers_exist: (Array[String] | nil) -> void
+
+      def ensure_exactly_one_server: (Array[String]) -> void
+
+      def validate_server_url_format: (String server_url) -> void
+
+      def self.fetch_metadata: (String url) -> Hash[Symbol, String]
+
+      def self.parse_metadata: (String body) -> Hash[String, untyped]
+    end
+  end
+end

@@ -1,0 +1,31 @@
+module AtprotoAuth
+  module PAR
+    class Client
+      @endpoint: String
+
+      attr_reader endpoint: String
+
+      def initialize: (endpoint: String) -> void
+
+      def submit: (Request request) -> Response
+
+      def authorization_url: (
+          authorize_endpoint: String,
+          request_uri: String,
+          client_id: String
+        ) -> String
+
+      private
+
+      def validate_endpoint!: () -> void
+
+      def build_headers: (Request request) -> Hash[String, String]
+
+      def make_request: (Request request, Hash[String, String] headers) -> Hash[Symbol, untyped]
+
+      def process_response: (Hash[Symbol, untyped] response) -> Response
+
+      def encode_params: (Hash[String, String]) -> String
+    end
+  end
+end

@@ -1,0 +1,17 @@
+module AtprotoAuth
+  module PAR
+    class Response
+      @request_uri: String
+      @expires_in: Integer
+
+      attr_reader request_uri: String
+      attr_reader expires_in: Integer
+
+      def initialize: (request_uri: String, expires_in: Integer) -> void
+
+      private
+
+      def validate!: () -> void
+    end
+  end
+end

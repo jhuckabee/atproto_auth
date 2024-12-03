@@ -1,0 +1,29 @@
+<div class="flex flex-col items-center md:flex md:flex-row md:justify-stretch md:items-center min-h-screen min-w-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+  <div class="px-6 pt-4 md:max-w-lg md:grid md:content-center md:justify-items-end md:self-stretch md:w-1/2 md:max-w-fix md:p-4 md:text-right md:dark:border-r md:dark:border-gray-700 md:bg-gray-100 md:dark:bg-gray-800">
+    <h1 class="text-xl md:text-2xl lg:text-5xl md:mt-4 mb-4 font-semibold text-brand">Successfully Authenticated!</h1>
+  </div>
+  <div class="w-full px-6 md:max-w-3xl md:px-12">
+    <div class="space-y-8">
+      <% if session[:error] %>
+        <div class="mb-8 bg-red-50 border-red-700 text-red-700 p-4 rounded-md">
+          <%= session[:error] %>
+          <% session[:error] = nil %>
+        </div>
+      <% end %>
+
+      <div class="token-info">
+        <p class="mb-1 text-gray-600 dark:text-gray-400 text-sm font-medium">Token Information</p>
+        <pre class="rounded-lg text-gray-700 dark:text-gray-100 bg-gray-100 dark:bg-slate-800 border border-gray-400 p-2 overflow-auto"><code><%= JSON.pretty_generate(session[:tokens]) %></code></pre>
+      </div>
+
+      <div class="api-test">
+        <p class="mb-1 text-gray-600 dark:text-gray-400 text-sm font-medium">Test API Call Result</p>
+        <pre class="rounded-lg text-gray-700 dark:text-gray-100 bg-gray-100 dark:bg-slate-800 border border-gray-400 p-2 overflow-auto"><code><%= JSON.pretty_generate(@api_result) %></code></pre>
+      </div>
+
+      <div class="flex">
+        <a href="/signout" aria-label="Signout" class="py-2 px-6 rounded-lg truncate cursor-pointer touch-manipulation tracking-wide overflow-hidden bg-blue-400 text-white">Sign out</a>
+      </div>
+    </div>
+  </div>
+</div>

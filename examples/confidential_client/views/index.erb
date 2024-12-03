@@ -1,0 +1,44 @@
+<div class="flex flex-col items-center md:flex md:flex-row md:justify-stretch md:items-center min-h-screen min-w-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+  <div class="px-6 pt-4 md:max-w-lg md:grid md:content-center md:justify-items-end md:self-stretch md:w-1/2 md:max-w-fix md:p-4 md:text-right md:dark:border-r md:dark:border-gray-700 md:bg-gray-100 md:dark:bg-gray-800">
+    <h1 class="text-xl md:text-2xl lg:text-5xl md:mt-4 mb-4 font-semibold text-brand">Sign in</h1>
+    <p class="hidden md:block max-w-xs text-gray-500 dark:text-gray-500">Enter your AT Protocol handle</p>
+  </div>
+  <div class="w-full px-6 md:max-w-3xl md:px-12">
+    <form method="post" action="/auth" class="flex flex-col py-4 space-y-4">
+      <div class="space-y-4">
+        <% if session[:error] %>
+          <div class="mb-8 bg-red-50 border-red-700 text-red-700 p-4 rounded-md">
+            <%= session[:error] %>
+            <% session[:error] = nil %>
+          </div>
+        <% end %>
+        <% if session[:notice] %>
+          <div class="mb-8 bg-yellow-50 border-yellow-700 text-yellow-700 p-4 rounded-md">
+            <%= session[:notice] %>
+            <% session[:notice] = nil %>
+          </div>
+        <% end %>
+        <fieldset>
+          <p class="mb-1 text-gray-600 dark:text-gray-400 text-sm font-medium">Handle</p>
+          <div class="flex flex-col space-y-4">
+            <div class="pl-1 pr-2 min-h-12 flex items-center justify-stretch rounded-lg text-gray-700 dark:text-gray-100 bg-gray-100 has-[:focus]:bg-gray-200 dark:bg-gray-800 dark:has-[:focus]:bg-gray-700 outline-none border-solid border-2 border-transparent hover:border-gray-400 has-[:focus]:border-brand hover:has-[:focus]:border-brand dark:hover:border-gray-500">
+              <div class="self-start shrink-0 grow-0 w-8 h-12 flex items-center justify-center text-gray-500">
+                <div>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5">
+                    <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M12 4a8 8 0 1 0 4.21 14.804 1 1 0 0 1 1.054 1.7A9.958 9.958 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 1.104-.27 2.31-.949 3.243-.716.984-1.849 1.6-3.331 1.465a4.207 4.207 0 0 1-2.93-1.585c-.94 1.21-2.388 1.94-3.985 1.715-2.53-.356-4.04-2.91-3.682-5.458.358-2.547 2.514-4.586 5.044-4.23.905.127 1.68.536 2.286 1.126a1 1 0 0 1 1.964.368l-.515 3.545v.002a2.222 2.222 0 0 0 1.999 2.526c.75.068 1.212-.21 1.533-.65.358-.493.566-1.245.566-2.067a8 8 0 0 0-8-8Zm-.112 5.13c-1.195-.168-2.544.819-2.784 2.529-.24 1.71.784 3.03 1.98 3.198 1.195.168 2.543-.819 2.784-2.529.24-1.71-.784-3.03-1.98-3.198Z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="relative">
+                <input class="w-full bg-transparent bg-clip-padding text-base text-inherit outline-none dark:placeholder-gray-500" name="handle" type="text" placeholder="handle.bsky.social" aria-label="Handle" autocapitalize="none" autocorrect="off" autocomplete="username" spellcheck="false" dir="auto" enterkeyhint="next" required title="valid handle">
+              </div>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+      <div class="pt-4">
+        <button role="Button" type="submit" aria-label="Next" class="py-2 px-6 rounded-lg truncate cursor-pointer touch-manipulation tracking-wide overflow-hidden bg-blue-400 text-white">Next</button>
+      </div>
+    </form>
+  </div>
+</div>

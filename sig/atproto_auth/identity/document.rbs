@@ -1,0 +1,31 @@
+module AtprotoAuth
+  module Identity
+    class Document
+      @did: String
+      @rotation_keys: Array[String]
+      @also_known_as: Array[String]
+      @services: Array[Hash[String, untyped]]
+      @pds: String
+
+      attr_reader did: String
+      attr_reader rotation_keys: Array[String]
+      attr_reader also_known_as: Array[String]
+      attr_reader services: Array[Hash[String, untyped]]
+      attr_reader pds: String
+
+      def initialize: (Hash[String, untyped] data) -> void
+
+      def has_handle?: (String handle) -> bool
+
+      private
+
+      def validate_document!: (Hash[String, untyped] data) -> void
+
+      def validate_did!: (String did) -> void
+
+      def validate_services!: (Array[Hash[String, untyped]]? services) -> void
+
+      def extract_pds!: (Hash[String, untyped] data) -> String
+    end
+  end
+end

@@ -1,0 +1,95 @@
+module AtprotoAuth
+  # Handles and validates AT Protocol OAuth client metadata.
+  class ClientMetadata
+    @client_id: String
+
+    @grant_types: Array[String]
+
+    @response_types: Array[String]
+
+    @redirect_uris: Array[String]
+
+    @scope: String
+
+    @client_name: String?
+
+    @application_type: String
+
+    @client_uri: String?
+
+    @logo_uri: String?
+
+    @tos_uri: String?
+
+    @policy_uri: String?
+
+    @token_endpoint_auth_method: String?
+
+    @jwks: Hash[String, untyped]?
+
+    @jwks_uri: String?
+
+    attr_reader client_id: String
+    attr_reader grant_types: Array[String]
+    attr_reader response_types: Array[String]
+    attr_reader redirect_uris: Array[String]
+    attr_reader scope: String
+    attr_reader client_name: String?
+    attr_reader client_uri: String?
+    attr_reader logo_uri: String?
+    attr_reader tos_uri: String?
+    attr_reader policy_uri: String?
+    attr_reader token_endpoint_auth_method: String?
+    attr_reader jwks: Hash[String, untyped]?
+    attr_reader jwks_uri: String?
+    attr_reader application_type: String
+
+    def initialize: (Hash[String, untyped] metadata) -> void
+
+    def self.from_url: (String url) -> ClientMetadata
+
+    def confidential?: () -> bool
+
+    private
+
+    def validate_and_set_metadata!: (Hash[String, untyped] metadata) -> void
+
+    def validate_client_id!: (String client_id) -> String
+
+    def validate_grant_types!: (Array[String] grant_types) -> Array[String]
+
+    def validate_response_types!: (Array[String] response_types) -> Array[String]
+
+    def validate_redirect_uris!: (Array[String] uris) -> Array[String]
+
+    def validate_redirect_uri!: (URI uri) -> void
+
+    def validate_redirect_uri_origin!: (URI uri) -> void
+
+    def validate_native_redirect_uri!: (URI uri) -> void
+
+    def validate_custom_scheme!: (URI uri) -> void
+
+    def validate_scope!: (String scope) -> String
+
+    def validate_offline_access_scope!: (Array[String] scope_values) -> void
+
+    def validate_application_type: (String? type) -> String
+
+    def validate_client_uri: (String? uri) -> String?
+
+    def validate_https_uri: (String? uri) -> String?
+
+    def validate_auth_methods!: (Hash[String, untyped] metadata) -> void
+
+    def validate_dpop!: (Hash[String, untyped] metadata) -> void
+
+    def self.validate_url!: (String url) -> void
+
+    def self.fetch_metadata: (String url) -> Hash[Symbol, untyped]
+
+    def self.parse_metadata: (String body) -> Hash[String, untyped]
+
+    def self.validate_client_id!: (String metadata_client_id, String url) -> void
+  end
+end

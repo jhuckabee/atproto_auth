@@ -1,0 +1,25 @@
+{
+  "client_id": "https://mac.tail7f768.ts.net/client-metadata.json",
+  "client_name": "AT Protocol OAuth Ruby Example",
+  "redirect_uris": ["https://mac.tail7f768.ts.net/callback"],
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "scope": "atproto",
+  "token_endpoint_auth_method": "private_key_jwt",
+  "token_endpoint_auth_signing_alg": "ES256",
+  "application_type": "web",
+  "dpop_bound_access_tokens": true,
+  "jwks": {
+    "keys": [
+      {
+        "use": "sig",
+        "kid": "key-1",
+        "x": "SzXlDk9rSyrZ3b0fVKOWFYY-AFZtld2zElycsmDZ3Xk",
+        "crv": "P-256",
+        "d": "OLJJKo9T9W7taz8gFd5YdsBw8cOpv3p5zPPtv2XaKcM",
+        "kty": "EC",
+        "y": "4hIBLl-BLD1Ypk-mvPxT2OR52ezMs4XI1MGBdhlLLm4"
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.error {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.auth-form {
+    max-width: 400px;
+    margin: 40px auto;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+button {
+    background: #2196f3;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1976d2;
+}
+
+.token-info,
+.api-test {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+pre {
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+code {
+    font-size: 14px;
+}
