@@ -119,7 +119,7 @@ module AtprotoAuth
         normalized.downcase
       end
 
-      def resolve_handle_dns(handle) # rubocop:disable Metrics/CyclomaticComplexity
+      def resolve_handle_dns(handle)
         domain = extract_domain(handle)
         return nil unless domain
 

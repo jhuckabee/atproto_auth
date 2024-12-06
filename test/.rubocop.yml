@@ -1,6 +1,0 @@
-# Inherit from the default configuration
-inherit_from: ../.rubocop.yml
-
-Metrics/BlockLength:
-  Enabled: false
-

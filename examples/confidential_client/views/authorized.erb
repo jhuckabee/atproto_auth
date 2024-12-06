@@ -13,7 +13,7 @@
 
       <div class="token-info">
         <p class="mb-1 text-gray-600 dark:text-gray-400 text-sm font-medium">Token Information</p>
-        <pre class="rounded-lg text-gray-700 dark:text-gray-100 bg-gray-100 dark:bg-slate-800 border border-gray-400 p-2 overflow-auto"><code><%= JSON.pretty_generate(session[:tokens]) %></code></pre>
+        <pre class="rounded-lg text-gray-700 dark:text-gray-100 bg-gray-100 dark:bg-slate-800 border border-gray-400 p-2 overflow-auto"><code><%= JSON.pretty_generate(@session) %></code></pre>
       </div>
 
       <div class="api-test">

@@ -77,7 +77,7 @@ class SnapshotGenerator
     file.puts(tree)
   end
 
-  def generate_tree_structure(path, prefix = "") # rubocop:disable Metrics/AbcSize
+  def generate_tree_structure(path, prefix = "")
     entries = Dir.entries(path).sort
     entries.delete(".")
     entries.delete("..")

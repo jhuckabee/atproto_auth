@@ -9,6 +9,14 @@ require "dotenv/load"
 
 # Main app entry point
 class ExampleApp < Sinatra::Base
+  def check_stored_session(session_id)
+    return false unless session_id
+
+    settings.oauth_client.authorized?(session_id)
+  rescue AtprotoAuth::SessionError
+    false
+  end
+
   configure :development do
     register Sinatra::Reloader
   end
@@ -45,7 +53,28 @@ class ExampleApp < Sinatra::Base
     )
   end
 
+  helpers do
+    def recover_session
+      session_id = session[:oauth_session_id]
+      return nil unless session_id
+
+      begin
+        # Check if session is still valid
+        return nil unless settings.oauth_client.authorized?(session_id)
+
+        session_id
+      rescue AtprotoAuth::Client::SessionError
+        # Clear invalid session
+        session.delete(:oauth_session_id)
+        nil
+      end
+    end
+  end
+
   get "/" do
+    # Check for existing session
+    redirect "/authorized" if recover_session
+
     erb :index
   end
 
@@ -78,7 +107,7 @@ class ExampleApp < Sinatra::Base
         scope: "atproto"
       )
 
-      # Store session ID for callback
+      # Store session ID in user's browser session
       session[:oauth_session_id] = auth[:session_id]
 
       # Redirect to authorization URL
@@ -98,8 +127,8 @@ class ExampleApp < Sinatra::Base
       iss: params[:iss]
     )
 
-    # Store tokens in session
-    session[:tokens] = result
+    # Store tokens
+    session[:oauth_session_id] = result[:session_id]
 
     redirect "/authorized"
   rescue StandardError => e
@@ -108,19 +137,18 @@ class ExampleApp < Sinatra::Base
   end
 
   # Show authorized state and test API call
-  get "/authorized" do # rubocop:disable Metrics/BlockLength
-    return redirect "/" unless session[:tokens]
+  get "/authorized" do
+    session_id = session[:oauth_session_id]
+    return redirect "/" unless check_stored_session(session_id)
 
     begin
-      # Get current session
-      oauth_session = settings.oauth_client.get_tokens(session[:tokens][:session_id])
+      # Get current session tokens
+      oauth_session = settings.oauth_client.get_tokens(session_id)
 
-      # Check if token needs refresh (using default 30s buffer)
+      # Check if token needs refresh
       if oauth_session[:expires_in] < 30
         # Refresh token
-        oauth_session = settings.oauth_client.refresh_token(session[:tokens][:session_id])
-        # Update session with new tokens
-        session[:tokens] = oauth_session
+        oauth_session = settings.oauth_client.refresh_token(session_id)
       end
 
       # Make test API call to com.atproto.identity.resolveHandle
@@ -131,7 +159,7 @@ class ExampleApp < Sinatra::Base
 
       # Get auth headers for request
       headers = settings.oauth_client.auth_headers(
-        session_id: session[:tokens][:session_id],
+        session_id: session_id,
         method: "GET",
         url: "https://api.bsky.app/xrpc/com.atproto.identity.resolveHandle"
       )
@@ -143,6 +171,7 @@ class ExampleApp < Sinatra::Base
       end
 
       @api_result = response.body
+      @session = oauth_session
       erb :authorized
     rescue StandardError => e
       session[:error] = "API call failed: #{e.message}"
@@ -151,6 +180,11 @@ class ExampleApp < Sinatra::Base
   end
 
   get "/signout" do
+    if session[:oauth_session_id]
+      # Clean up stored session
+      settings.oauth_client.remove_session(session[:oauth_session_id])
+    end
+
     session.clear
     session[:notice] = "Successfully signed out"
     redirect "/"

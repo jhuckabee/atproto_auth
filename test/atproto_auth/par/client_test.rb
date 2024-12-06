@@ -35,10 +35,11 @@ describe AtprotoAuth::PAR::Client do
       @dpop_client.stubs(:generate_proof).returns(@proof)
       @nonce_manager.stubs(:get).returns("mocked_nonce")
       @http_client = mock("http_client")
+      @http_client.stubs(:get)
+      @http_client.stubs(:post).returns(@response)
       AtprotoAuth.configure do |configuration|
         configuration.http_client = @http_client
       end
-      @http_client.stubs(:post).returns(@response)
     end
 
     it "submits the PAR request and returns a Response object on success" do

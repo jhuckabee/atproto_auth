@@ -189,7 +189,7 @@ module AtprotoAuth
         asn1_to_raw(signature)
       end
 
-      def extract_ec_key # rubocop:disable Metrics/AbcSize
+      def extract_ec_key
         # Extract the raw EC key from JOSE JWK
         key_data = @keypair.to_map
         raise KeyError, "Private key required for signing" unless key_data["d"] # Private key component

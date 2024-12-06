@@ -119,7 +119,7 @@ module AtprotoAuth
         delay + (rand * 0.5 * delay) # Add up to 50% jitter
       end
 
-      def request_token_refresh # rubocop:disable Metrics/AbcSize
+      def request_token_refresh
         # Generate DPoP proof for token request
         proof = dpop_client.generate_proof(
           http_method: "POST",
@@ -149,7 +149,7 @@ module AtprotoAuth
         handle_refresh_response(response)
       end
 
-      def add_client_authentication!(body) # rubocop:disable Metrics/AbcSize
+      def add_client_authentication!(body)
         return unless session.client_metadata.jwks && !session.client_metadata.jwks["keys"].empty?
 
         signing_key = JOSE::JWK.from_map(session.client_metadata.jwks["keys"].first)
@@ -221,7 +221,7 @@ module AtprotoAuth
         raise RefreshError, "Rate limited - retry after #{retry_after} seconds"
       end
 
-      def validate_refresh_response!(data) # rubocop:disable Metrics/AbcSize
+      def validate_refresh_response!(data)
         # Required fields
         %w[access_token token_type expires_in scope sub].each do |field|
           raise RefreshError.new("Missing #{field} in response", retry_possible: false) unless data[field]

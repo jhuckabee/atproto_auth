@@ -10,6 +10,10 @@ describe AtprotoAuth::DPoP::NonceManager do
   let(:ttl) { 2 } # Custom TTL for testing expiration
   let(:nonce_manager) { AtprotoAuth::DPoP::NonceManager.new(ttl: ttl) }
 
+  after do
+    nonce_manager.clear(server_url)
+  end
+
   describe "#initialize" do
     it "initializes with a default TTL" do
       manager = AtprotoAuth::DPoP::NonceManager.new
@@ -22,16 +26,22 @@ describe AtprotoAuth::DPoP::NonceManager do
   end
 
   describe "#update" do
-    it "updates the nonce for a server" do
+    it "stores a nonce for a server" do
       nonce_manager.update(nonce: nonce, server_url: server_url)
-      stored_nonce = nonce_manager.instance_variable_get(:@nonces)[server_url]
-      _(stored_nonce.value).must_equal nonce
+      stored = nonce_manager.get(server_url)
+      _(stored).must_equal nonce
     end
 
-    it "updates the nonce for non-HTTPS localhost server" do
+    it "updates an existing nonce" do
+      nonce_manager.update(nonce: nonce, server_url: server_url)
+      nonce_manager.update(nonce: "new_nonce", server_url: server_url)
+      _(nonce_manager.get(server_url)).must_equal "new_nonce"
+    end
+
+    it "stores nonce for non-HTTPS localhost server" do
       nonce_manager.update(nonce: nonce, server_url: "http://localhost:3000")
-      stored_nonce = nonce_manager.instance_variable_get(:@nonces)["http://localhost:3000"]
-      _(stored_nonce.value).must_equal nonce
+      stored = nonce_manager.get("http://localhost:3000")
+      _(stored).must_equal nonce
     end
 
     it "raises an error if nonce is invalid" do
@@ -53,13 +63,13 @@ describe AtprotoAuth::DPoP::NonceManager do
       _(nonce_manager.get(server_url)).must_equal nonce
     end
 
-    it "returns nil if the nonce has expired" do
-      nonce_manager.update(nonce: expired_nonce, server_url: server_url)
-      sleep(ttl + 1) # Ensure the nonce expires
-      _(nonce_manager.get(server_url)).must_be_nil
+    it "returns nil if no nonce exists for the server" do
+      _(nonce_manager.get(server_url)).must_equal nil
     end
 
-    it "returns nil if no nonce exists for the server" do
+    it "returns nil if the nonce has expired" do
+      nonce_manager.update(nonce: expired_nonce, server_url: server_url)
+      sleep(ttl + 0.1) # Wait for expiration
       _(nonce_manager.get(server_url)).must_be_nil
     end
 
@@ -71,25 +81,10 @@ describe AtprotoAuth::DPoP::NonceManager do
   end
 
   describe "#clear" do
-    it "clears the nonce for a server" do
+    it "removes a nonce for a server" do
       nonce_manager.update(nonce: nonce, server_url: server_url)
       nonce_manager.clear(server_url)
       _(nonce_manager.get(server_url)).must_be_nil
-    end
-  end
-
-  describe "#clear_all" do
-    it "clears all stored nonces" do
-      nonce_manager.update(nonce: nonce, server_url: server_url)
-      nonce_manager.clear_all
-      _(nonce_manager.server_urls).must_be_empty
-    end
-  end
-
-  describe "#server_urls" do
-    it "returns all server URLs with stored nonces" do
-      nonce_manager.update(nonce: nonce, server_url: server_url)
-      _(nonce_manager.server_urls).must_equal [server_url]
     end
   end
 
@@ -99,13 +94,13 @@ describe AtprotoAuth::DPoP::NonceManager do
       _(nonce_manager.valid_nonce?(server_url)).must_equal true
     end
 
-    it "returns false if the nonce has expired" do
-      nonce_manager.update(nonce: expired_nonce, server_url: server_url)
-      sleep(ttl + 1) # Ensure the nonce expires
+    it "returns false if no nonce exists for the server" do
       _(nonce_manager.valid_nonce?(server_url)).must_equal false
     end
 
-    it "returns false if no nonce exists for the server" do
+    it "returns false if the nonce has expired" do
+      nonce_manager.update(nonce: expired_nonce, server_url: server_url)
+      sleep(ttl + 0.1) # Wait for expiration
       _(nonce_manager.valid_nonce?(server_url)).must_equal false
     end
 
@@ -113,6 +108,23 @@ describe AtprotoAuth::DPoP::NonceManager do
       assert_raises(AtprotoAuth::DPoP::NonceManager::NonceError) do
         nonce_manager.valid_nonce?("")
       end
+    end
+  end
+
+  describe "thread safety" do
+    it "handles concurrent nonce updates" do
+      threads = 10.times.map do |i|
+        Thread.new do
+          nonce_manager.update(nonce: "nonce_#{i}", server_url: server_url)
+          sleep(0.1)
+          nonce_manager.get(server_url)
+        end
+      end
+
+      threads.each(&:join)
+      # The nonce should exist and be one of the values we set
+      stored = nonce_manager.get(server_url)
+      assert stored =~ /^nonce_\d$/
     end
   end
 end

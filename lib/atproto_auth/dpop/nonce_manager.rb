@@ -1,40 +1,31 @@
 # frozen_string_literal: true
 
-require "monitor"
-
 module AtprotoAuth
   module DPoP
     # Manages DPoP nonces provided by servers during the OAuth flow.
-    # Tracks separate nonces for Resource Server and Authorization Server.
+    # Tracks separate nonces for each server using persistent storage.
     # Thread-safe to handle concurrent requests.
     class NonceManager
       # Error for nonce-related issues
       class NonceError < AtprotoAuth::Error; end
 
-      # Represents a stored nonce with its timestamp
+      # Represents a stored nonce with its server URL
       class StoredNonce
-        attr_reader :value, :timestamp, :server_url
+        attr_reader :value, :server_url, :timestamp
 
-        def initialize(value, server_url)
+        def initialize(value, server_url, timestamp: nil)
           @value = value
           @server_url = server_url
-          @timestamp = Time.now.to_i
-        end
-
-        def expired?(ttl = nil)
-          return false unless ttl
-
-          (Time.now.to_i - @timestamp) > ttl
+          @timestamp = timestamp || Time.now.to_i
         end
       end
 
-      # Maximum time in seconds a nonce is considered valid
+      # Default time in seconds a nonce is considered valid
       DEFAULT_TTL = 300 # 5 minutes
 
       def initialize(ttl: nil)
         @ttl = ttl || DEFAULT_TTL
-        @nonces = {}
-        @monitor = Monitor.new
+        @serializer = Serialization::StoredNonce.new
       end
 
       # Updates the stored nonce for a server
@@ -45,9 +36,13 @@ module AtprotoAuth
         validate_inputs!(nonce, server_url)
         origin = normalize_server_url(server_url)
 
-        @monitor.synchronize do
-          @nonces[origin] = StoredNonce.new(nonce, origin)
-        end
+        stored_nonce = StoredNonce.new(nonce, origin)
+        serialized = @serializer.serialize(stored_nonce)
+
+        key = Storage::KeyBuilder.nonce_key(origin)
+        return if AtprotoAuth.storage.set(key, serialized, ttl: @ttl)
+
+        raise NonceError, "Failed to store nonce"
       end
 
       # Gets the current nonce for a server
@@ -57,36 +52,26 @@ module AtprotoAuth
       def get(server_url)
         validate_server_url!(server_url)
         origin = normalize_server_url(server_url)
+        key = Storage::KeyBuilder.nonce_key(origin)
 
-        @monitor.synchronize do
-          stored = @nonces[origin]
-          return nil if stored.nil? || stored.expired?(@ttl)
+        stored = AtprotoAuth.storage.get(key)
+        return nil unless stored
 
-          stored.value
+        begin
+          stored_nonce = @serializer.deserialize(stored)
+          stored_nonce.value
+        rescue Serialization::Error => e
+          raise NonceError, "Failed to deserialize nonce: #{e.message}"
         end
       end
 
-      # Clears an expired nonce for a server
+      # Clears a nonce for a server
       # @param server_url [String] The server's URL
       def clear(server_url)
-        @monitor.synchronize do
-          @nonces.delete(server_url)
-        end
-      end
-
-      # Clears all stored nonces
-      def clear_all
-        @monitor.synchronize do
-          @nonces.clear
-        end
-      end
-
-      # Get all currently stored server URLs
-      # @return [Array<String>] Array of server URLs with stored nonces
-      def server_urls
-        @monitor.synchronize do
-          @nonces.keys
-        end
+        validate_server_url!(server_url)
+        origin = normalize_server_url(server_url)
+        key = Storage::KeyBuilder.nonce_key(origin)
+        AtprotoAuth.storage.delete(key)
       end
 
       # Check if a server has a valid nonce
@@ -94,11 +79,9 @@ module AtprotoAuth
       # @return [Boolean] true if server has a valid nonce
       def valid_nonce?(server_url)
         validate_server_url!(server_url)
-
-        @monitor.synchronize do
-          stored = @nonces[server_url]
-          !stored.nil? && !stored.expired?(@ttl)
-        end
+        origin = normalize_server_url(server_url)
+        key = Storage::KeyBuilder.nonce_key(origin)
+        AtprotoAuth.storage.exists?(key)
       end
 
       private

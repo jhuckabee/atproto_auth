@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/PerceivedComplexity, Metrics/AbcSize, Metrics/CyclomaticComplexity
-
 module AtprotoAuth
   # Main client class for AT Protocol OAuth implementation. Handles the complete
   # OAuth flow including authorization, token management, and identity verification.
@@ -11,6 +9,16 @@ module AtprotoAuth
 
     # Error raised when token operations fail
     class TokenError < Error; end
+
+    # Error raised when session operations fail
+    class SessionError < Error
+      attr_reader :session_id
+
+      def initialize(message, session_id: nil)
+        @session_id = session_id
+        super(message)
+      end
+    end
 
     # @return [String] OAuth client ID
     attr_reader :client_id
@@ -59,6 +67,9 @@ module AtprotoAuth
         scope: scope
       )
 
+      # Store session with storage backend
+      session_manager.update_session(session)
+
       # Resolve identity and authorization server if handle provided
       if handle
         auth_info = resolve_from_handle(handle, session)
@@ -96,34 +107,39 @@ module AtprotoAuth
       # Verify issuer matches session
       raise CallbackError, "Issuer mismatch" unless session.auth_server && session.auth_server.issuer == iss
 
-      # Exchange code for tokens
-      token_response = exchange_code(
-        code: code,
-        session: session
-      )
+      AtprotoAuth.storage.with_lock(Storage::KeyBuilder.lock_key("session", session.session_id), ttl: 30) do
+        # Exchange code for tokens
+        token_response = exchange_code(
+          code: code,
+          session: session
+        )
 
-      # Validate token response
-      validate_token_response!(token_response, session)
+        # Validate token response
+        validate_token_response!(token_response, session)
 
-      # Create token set and store in session
-      token_set = State::TokenSet.new(
-        access_token: token_response["access_token"],
-        token_type: token_response["token_type"],
-        expires_in: token_response["expires_in"],
-        refresh_token: token_response["refresh_token"],
-        scope: token_response["scope"],
-        sub: token_response["sub"]
-      )
-      session.tokens = token_set
+        # Create token set and store in session
+        token_set = State::TokenSet.new(
+          access_token: token_response["access_token"],
+          token_type: token_response["token_type"],
+          expires_in: token_response["expires_in"],
+          refresh_token: token_response["refresh_token"],
+          scope: token_response["scope"],
+          sub: token_response["sub"]
+        )
+        session.tokens = token_set
 
-      {
-        access_token: token_set.access_token,
-        token_type: token_set.token_type,
-        expires_in: (token_set.expires_at - Time.now).to_i,
-        refresh_token: token_set.refresh_token,
-        scope: token_set.scope,
-        session_id: session.session_id
-      }
+        # Update stored session
+        session_manager.update_session(session)
+
+        {
+          access_token: token_set.access_token,
+          token_type: token_set.token_type,
+          expires_in: (token_set.expires_at - Time.now).to_i,
+          refresh_token: token_set.refresh_token,
+          scope: token_set.scope,
+          session_id: session.session_id
+        }
+      end
     end
 
     # Gets active tokens for a session
@@ -149,24 +165,29 @@ module AtprotoAuth
       raise TokenError, "Invalid session" unless session
       raise TokenError, "Session not authorized" unless session.renewable?
 
-      refresher = Token::Refresh.new(
-        session: session,
-        dpop_client: @dpop_client,
-        auth_server: session.auth_server,
-        client_metadata: client_metadata
-      )
+      AtprotoAuth.storage.with_lock(Storage::KeyBuilder.lock_key("session", session.session_id), ttl: 30) do
+        refresher = Token::Refresh.new(
+          session: session,
+          dpop_client: @dpop_client,
+          auth_server: session.auth_server,
+          client_metadata: client_metadata
+        )
 
-      new_tokens = refresher.perform!
-      session.tokens = new_tokens
+        new_tokens = refresher.perform!
+        session.tokens = new_tokens
 
-      {
-        access_token: new_tokens.access_token,
-        token_type: new_tokens.token_type,
-        expires_in: (new_tokens.expires_at - Time.now).to_i,
-        refresh_token: new_tokens.refresh_token,
-        scope: new_tokens.scope,
-        session_id: session.session_id
-      }
+        # Update stored session
+        session_manager.update_session(session)
+
+        {
+          access_token: new_tokens.access_token,
+          token_type: new_tokens.token_type,
+          expires_in: (new_tokens.expires_at - Time.now).to_i,
+          refresh_token: new_tokens.refresh_token,
+          scope: new_tokens.scope,
+          session_id: session.session_id
+        }
+      end
     end
 
     # Checks if a session has valid tokens
@@ -199,6 +220,21 @@ module AtprotoAuth
         "Authorization" => "DPoP #{session.tokens.access_token}",
         "DPoP" => proof
       }
+    end
+
+    # Removes a session and its stored data
+    # @param session_id [String] ID of session to remove
+    # @return [void]
+    def remove_session(session_id)
+      key = Storage::KeyBuilder.session_key(session_id)
+      AtprotoAuth.storage.delete(key)
+      session_manager.remove_session(session_id)
+    end
+
+    # Cleans up expired sessions from storage
+    # @return [void]
+    def cleanup_expired_sessions
+      session_manager.cleanup_expired
     end
 
     private
@@ -241,6 +277,9 @@ module AtprotoAuth
       server = resolve_auth_server(resolution[:pds])
       session.authorization_server = server
 
+      # Update stored session
+      session_manager.update_session(session)
+
       { server: server, pds: resolution[:pds] }
     end
 
@@ -248,6 +287,9 @@ module AtprotoAuth
       # Get authorization server from PDS
       server = resolve_auth_server(pds_url)
       session.authorization_server = server
+
+      # Update stored session
+      session_manager.update_session(session)
 
       { server: server, pds: pds_url }
     end
@@ -426,5 +468,3 @@ module AtprotoAuth
     end
   end
 end
-
-# rubocop:enable Metrics/PerceivedComplexity, Metrics/AbcSize, Metrics/CyclomaticComplexity

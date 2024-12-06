@@ -78,7 +78,7 @@ module AtprotoAuth
         raise DocumentError, "Invalid DID format (must be did:plc:): #{did}"
       end
 
-      def validate_services!(services) # rubocop:disable Metrics/CyclomaticComplexity
+      def validate_services!(services)
         return if services.nil?
         raise DocumentError, "services must be an array" unless services.is_a?(Array)
 

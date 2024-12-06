@@ -57,9 +57,28 @@ module AtprotoAuth
         new(metadata)
       end
 
+      def to_h
+        {
+          issuer: issuer,
+          authorization_endpoint: authorization_endpoint,
+          token_endpoint: token_endpoint,
+          pushed_authorization_request_endpoint: pushed_authorization_request_endpoint,
+          response_types_supported: response_types_supported,
+          grant_types_supported: grant_types_supported,
+          code_challenge_methods_supported: code_challenge_methods_supported,
+          token_endpoint_auth_methods_supported: token_endpoint_auth_methods_supported,
+          token_endpoint_auth_signing_alg_values_supported: token_endpoint_auth_signing_alg_values_supported,
+          scopes_supported: scopes_supported,
+          dpop_signing_alg_values_supported: dpop_signing_alg_values_supported,
+          authorization_response_iss_parameter_supported: true,
+          require_pushed_authorization_requests: true,
+          client_id_metadata_document_supported: true
+        }
+      end
+
       private
 
-      def validate_and_set_metadata!(metadata) # rubocop:disable Metrics/AbcSize
+      def validate_and_set_metadata!(metadata)
         REQUIRED_FIELDS.each do |field|
           raise InvalidAuthorizationServer, "#{field} is required" unless metadata[field]
         end

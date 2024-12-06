@@ -136,7 +136,7 @@ module AtprotoAuth
       raise HttpError.new("Request failed: #{e.message}", nil)
     end
 
-    def make_post_request(uri, body, headers = {}, redirect_count = 0) # rubocop:disable Metrics/AbcSize
+    def make_post_request(uri, body, headers = {}, redirect_count = 0)
       http = Net::HTTP.new(uri.host, uri.port)
       configure_http_client!(http)
 
@@ -182,7 +182,7 @@ module AtprotoAuth
     # - headers: Hash of headers from the original request
     # - redirect_count: Number of redirects so far
     # - body: Request body for POST requests
-    def handle_redirect(**kwargs) # rubocop:disable Metrics/AbcSize
+    def handle_redirect(**kwargs)
       response = kwargs[:response]
       redirect_count = kwargs[:redirect_count]
 

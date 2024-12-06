@@ -56,7 +56,7 @@ module AtprotoAuth
 
     private
 
-    def validate_and_set_metadata!(metadata) # rubocop:disable Metrics/AbcSize
+    def validate_and_set_metadata!(metadata)
       # Required fields
       @application_type = validate_application_type(metadata["application_type"])
       @client_id = validate_client_id!(metadata["client_id"])
@@ -208,7 +208,7 @@ module AtprotoAuth
       end
     end
 
-    def validate_auth_methods!(metadata) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    def validate_auth_methods!(metadata)
       @token_endpoint_auth_method = metadata["token_endpoint_auth_method"]
       return unless @token_endpoint_auth_method == "private_key_jwt"
 

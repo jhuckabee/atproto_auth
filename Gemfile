@@ -6,6 +6,7 @@ source "https://rubygems.org"
 gemspec
 
 gem "minitest", "~> 5.25"
+gem "minitest-reporters", "~> 1.7"
 gem "mocha", "~> 2.6"
 gem "mutex_m", "~> 0.3"
 gem "rake", "~> 13.0"
