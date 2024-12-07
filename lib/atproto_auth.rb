@@ -15,6 +15,7 @@ require "atproto_auth/pkce"
 require "atproto_auth/storage/interface"
 require "atproto_auth/storage/key_builder"
 require "atproto_auth/storage/memory"
+require "atproto_auth/storage/redis"
 
 require "atproto_auth/server_metadata"
 require "atproto_auth/server_metadata/origin_url"
