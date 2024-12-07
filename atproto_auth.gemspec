@@ -32,4 +32,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "jose", "~> 1.2"
   spec.add_dependency "jwt", "~> 2.9"
+  spec.add_dependency "redis", "~> 5.3"
 end

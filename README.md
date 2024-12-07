@@ -15,6 +15,8 @@ A Ruby implementation of the [AT Protocol OAuth specification](https://docs.bsky
 - Comprehensive identity resolution and verification
 - Automatic token refresh and session management
 - Robust error handling and recovery mechanisms
+- Configurable storage backends with built-in Redis support
+- Encrypted storage of sensitive data
 
 ## Installation
 
@@ -41,6 +43,7 @@ gem install atproto_auth
 - Ruby 3.0 or higher
 - OpenSSL support
 - For confidential clients: HTTPS-capable domain for client metadata hosting
+- Optional: Redis 5.0+ for production storage backend
 
 ## Basic Usage
 
@@ -59,6 +62,88 @@ AtprotoAuth.configure do |config|
   # Set token lifetimes
   config.default_token_lifetime = 300 # 5 minutes
   config.dpop_nonce_lifetime = 300  # 5 minutes
+
+  # Configure storage backend (default is in-memory)
+  config.storage = AtprotoAuth::Storage::Memory.new
+end
+
+# For production environments, use Redis storage:
+AtprotoAuth.configure do |config|
+  # Configure Redis storage
+  config.storage = AtprotoAuth::Storage::Redis.new(
+    redis_client: Redis.new(url: ENV['REDIS_URL'])
+  )
+end
+```
+
+### Storage Backends
+
+The library supports multiple storage backends for managing OAuth state:
+
+#### In-Memory Storage (Default)
+```ruby
+# Default configuration - good for development
+AtprotoAuth.configure do |config|
+  config.storage = AtprotoAuth::Storage::Memory.new
+end
+```
+
+#### Redis Storage (Recommended for Production)
+```ruby
+# Redis configuration - recommended for production
+require 'redis'
+
+AtprotoAuth.configure do |config|
+  redis_client = Redis.new(
+    url: ENV['REDIS_URL'],
+    ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_PEER }
+  )
+  
+  config.storage = AtprotoAuth::Storage::Redis.new(
+    redis_client: redis_client
+  )
+end
+```
+
+#### Custom Storage Implementation
+```ruby
+# Implement your own storage backend
+class CustomStorage < AtprotoAuth::Storage::Interface
+  def set(key, value, ttl: nil)
+    # Implementation
+  end
+
+  def get(key)
+    # Implementation
+  end
+
+  def delete(key)
+    # Implementation
+  end
+
+  def exists?(key)
+    # Implementation
+  end
+
+  def multi_get(keys)
+    # Implementation
+  end
+
+  def multi_set(hash, ttl: nil)
+    # Implementation
+  end
+
+  def acquire_lock(key, ttl:)
+    # Implementation
+  end
+
+  def release_lock(key)
+    # Implementation
+  end
+
+  def with_lock(key, ttl: 30)
+    # Implementation
+  end
 end
 ```
 
@@ -162,7 +247,8 @@ Built-in security best practices:
 - Constant-time token comparisons
 - Thread-safe state management
 - Protection against SSRF attacks
-- Secure token storage
+- Secure encrypted token storage
+- Atomic storage operations with locking
 
 ## Development
 

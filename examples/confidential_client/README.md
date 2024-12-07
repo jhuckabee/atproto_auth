@@ -12,8 +12,9 @@ The example implements a simple web application using Sinatra that:
 - Allows users to sign in with their AT Protocol handle (@handle)
 - Implements the complete OAuth authorization flow
 - Uses DPoP-bound tokens for API requests
-- Demonstrates secure session management
+- Demonstrates secure session management with encryption
 - Shows how to make authenticated API calls to Bluesky
+- Provides examples of both development and production storage configurations
 
 ## Requirements
 
@@ -21,6 +22,7 @@ The example implements a simple web application using Sinatra that:
 - Bundler
 - A domain name for your application that matches your client metadata
 - SSL certificate for your domain (required for production)
+- Redis (optional, recommended for production)
 
 ## Setup
 
@@ -50,11 +52,49 @@ bundle exec ruby scripts/generate_keys.rb > config/keys.json
 
 5. Set up environment variables:
 ```bash
-export SESSION_SECRET=your-secure-session-secret # Required for session encryption
-export PERMITTED_DOMAIN=your.domain.com # Your application's domain name 
+# Required for session encryption
+export SESSION_SECRET=your-secure-session-secret 
+
+# Your application's domain name
+export PERMITTED_DOMAIN=your.domain.com 
+
+# Optional: Redis URL for production storage
+export REDIS_URL=redis://localhost:6379
 ```
 
 ## Configuration
+
+### Storage Configuration
+
+The example app supports both in-memory and Redis storage backends:
+
+#### Development (In-Memory Storage)
+```ruby
+# config/development.rb
+AtprotoAuth.configure do |config|
+  config.storage = AtprotoAuth::Storage::Memory.new
+  config.logger = Logger.new($stdout)
+end
+```
+
+#### Production (Redis Storage)
+```ruby
+# config/production.rb
+require 'redis'
+
+AtprotoAuth.configure do |config|
+  redis_client = Redis.new(
+    url: ENV.fetch('REDIS_URL'),
+    ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_PEER }
+  )
+  
+  config.storage = AtprotoAuth::Storage::Redis.new(
+    redis_client: redis_client
+  )
+  
+  config.logger = Logger.new($stdout)
+end
+```
 
 ### Host Authorization
 
@@ -77,7 +117,7 @@ This application requires specific domain configuration to function properly:
       ```bash
       export PERMITTED_DOMAIN=machinename.xyz.ts.net
       ```
-   6. Run the application (see below).
+   6. Run the application (see below)
 
 Your application will now be accessible via your Tailscale domain with HTTPS enabled.
 
@@ -85,20 +125,25 @@ Your application will now be accessible via your Tailscale domain with HTTPS ena
 
 The application uses encrypted sessions to store authorization data. Configure the session secret with:
 
-```ruby
+```bash
 export SESSION_SECRET=your-secure-random-string
 ```
 
-If not set, a random secret will be generated on startup.
+If not set, a random secret will be generated on startup (not recommended for production).
 
 ## Running the Application
 
+### Development
 ```bash
-bundle exec rackup
+RACK_ENV=development bundle exec rackup
+```
+
+### Production
+```bash
+RACK_ENV=production bundle exec rackup -E production
 ```
 
 This will start the server on `http://localhost:9292`.
-
 
 ## Troubleshooting
 
@@ -116,3 +161,27 @@ This will start the server on `http://localhost:9292`.
    - Verify your JWKS configuration
    - Check that your DPoP proofs are being generated correctly
    - Ensure your client authentication is working
+
+4. "Storage errors":
+   - For Redis storage, verify Redis connection settings
+   - Check Redis SSL configuration if using encrypted connections
+   - Ensure proper Redis authentication credentials if required
+
+5. "Session state lost":
+   - Verify storage configuration is correct
+   - Check Redis connection stability if using Redis storage
+   - Ensure session TTLs are appropriately configured
+
+## Understanding the Code
+
+The example demonstrates several important concepts:
+
+1. **Secure Storage**: The app shows proper configuration of both development (in-memory) and production (Redis) storage backends.
+
+2. **Token Management**: All tokens are stored securely with encryption in the configured storage backend.
+
+3. **Session Handling**: The app demonstrates proper session state management with atomic operations and locking.
+
+4. **Error Recovery**: Includes examples of handling storage failures and token refresh scenarios.
+
+The code is thoroughly commented to explain these concepts and their implementation details.

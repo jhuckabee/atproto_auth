@@ -21,13 +21,6 @@ class ExampleApp < Sinatra::Base
     register Sinatra::Reloader
   end
 
-  set :host_authorization, {
-    permitted_hosts: ["localhost", ENV.fetch("PERMITTED_DOMAIN", nil)].compact
-  }
-
-  enable :sessions
-  set :session_secret, ENV.fetch("SESSION_SECRET") { SecureRandom.hex(32) }
-
   # Initialize the AT Protocol OAuth client
   configure do
     # Configure AtprotoAuth settings
@@ -38,6 +31,9 @@ class ExampleApp < Sinatra::Base
       )
       config.default_token_lifetime = 300
       config.dpop_nonce_lifetime = 300
+
+      # Optionally, use Redis storage instead of in-memory
+      # config.storage = AtprotoAuth::Storage::Redis.new
     end
 
     # Load client metadata
@@ -52,6 +48,18 @@ class ExampleApp < Sinatra::Base
       dpop_key: metadata["jwks"]["keys"][0]
     )
   end
+
+  set :host_authorization, {
+    permitted_hosts: ["localhost", ENV.fetch("PERMITTED_DOMAIN", nil)].compact
+  }
+
+  use Rack::Session::Cookie,
+      key: "atproto.session",
+      expire_after: 86_400, # 1 day in seconds
+      secret: ENV.fetch("SESSION_SECRET") { SecureRandom.hex(32) },
+      secure: true,       # Only send over HTTPS
+      httponly: true,     # Not accessible via JavaScript
+      same_site: :lax     # CSRF protection
 
   helpers do
     def recover_session
