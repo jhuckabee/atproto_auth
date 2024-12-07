@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "A Ruby library for implementing AT Protocol OAuth flows, including DPoP, PAR, and dynamic client registration. Supports both client and server-side implementations with comprehensive security features." # rubocop:disable Layout/LineLength
   spec.homepage = "https://github.com/jhuckabee/atproto_auth"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.0.0"
+  spec.required_ruby_version = ">= 3.3.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/jhuckabee/atproto_auth"
@@ -32,4 +32,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "jose", "~> 1.2"
   spec.add_dependency "jwt", "~> 2.9"
+  spec.add_dependency "redis", "~> 5.3"
 end
