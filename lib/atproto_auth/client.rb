@@ -137,7 +137,8 @@ module AtprotoAuth
           expires_in: (token_set.expires_at - Time.now).to_i,
           refresh_token: token_set.refresh_token,
           scope: token_set.scope,
-          session_id: session.session_id
+          session_id: session.session_id,
+          did: session.did
         }
       end
     end
