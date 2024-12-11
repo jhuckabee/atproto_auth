@@ -65,7 +65,7 @@ describe AtprotoAuth::DPoP::ProofGenerator do
       payload = extract_payload(proof)
 
       digest = OpenSSL::Digest::SHA256.digest(token)
-      expected_hash = Base64.urlsafe_encode64(digest[0...(digest.length / 2)], padding: false)
+      expected_hash = Base64.urlsafe_encode64(digest, padding: false)
       assert_equal expected_hash, payload["ath"]
     end
 

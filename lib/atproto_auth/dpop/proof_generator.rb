@@ -99,7 +99,7 @@ module AtprotoAuth
 
       def generate_access_token_hash(access_token)
         digest = OpenSSL::Digest::SHA256.digest(access_token)
-        Base64.urlsafe_encode64(digest[0...(digest.length / 2)], padding: false)
+        Base64.urlsafe_encode64(digest, padding: false)
       end
 
       def encode_jwt_segments(header, payload)
