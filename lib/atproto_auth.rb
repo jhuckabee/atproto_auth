@@ -33,6 +33,7 @@ require "atproto_auth/state/session"
 require "atproto_auth/state/session_manager"
 
 require "atproto_auth/identity"
+require "atproto_auth/identity/did"
 require "atproto_auth/identity/document"
 require "atproto_auth/identity/resolver"
 

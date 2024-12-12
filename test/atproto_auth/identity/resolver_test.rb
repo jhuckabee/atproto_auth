@@ -67,6 +67,25 @@ describe AtprotoAuth::Identity::Resolver do
         resolver.get_did_info("invalid:did")
       end
     end
+
+    it "fetches and validates web DID document" do
+      web_did = "did:web:example.com"
+      stub_request(:get, "https://example.com/.well-known/did.json")
+        .to_return(body: { id: web_did, pds: "https://pds.example.com" }.to_json)
+
+      result = resolver.get_did_info(web_did)
+      assert_equal web_did, result[:did]
+      assert_equal "https://pds.example.com", result[:pds]
+    end
+
+    it "handles web DID with path component" do
+      web_did = "did:web:example.com:user:alice"
+      stub_request(:get, "https://example.com/user/alice/did.json")
+        .to_return(body: { id: web_did, pds: "https://pds.example.com" }.to_json)
+
+      result = resolver.get_did_info(web_did)
+      assert_equal web_did, result[:did]
+    end
   end
 
   describe "#verify_pds_binding" do

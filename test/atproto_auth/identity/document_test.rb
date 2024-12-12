@@ -58,7 +58,7 @@ describe AtprotoAuth::Identity::Document do
     end
 
     it "raises an error if DID format is invalid" do
-      assert_raises(AtprotoAuth::Identity::DocumentError, "Invalid DID format (must be did:plc:)") do
+      assert_raises(AtprotoAuth::Identity::Error, "Invalid DID format (must be did:plc:)") do
         AtprotoAuth::Identity::Document.new(invalid_did)
       end
     end

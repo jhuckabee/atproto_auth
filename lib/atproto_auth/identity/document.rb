@@ -68,14 +68,8 @@ module AtprotoAuth
         raise DocumentError, "Document must be a Hash" unless data.is_a?(Hash)
         raise DocumentError, "Document must have id" unless data["id"]
 
-        validate_did!(data["id"])
+        DID.new(data["id"]).validate!
         validate_services!(data["service"])
-      end
-
-      def validate_did!(did)
-        return if did.start_with?("did:plc:")
-
-        raise DocumentError, "Invalid DID format (must be did:plc:): #{did}"
       end
 
       def validate_services!(services)
