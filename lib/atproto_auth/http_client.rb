@@ -94,23 +94,44 @@ module AtprotoAuth
       unless ALLOWED_SCHEMES.include?(uri.scheme)
         raise SSRFError, "URL scheme must be one of: #{ALLOWED_SCHEMES.join(", ")}"
       end
-      raise SSRFError, "URL must include host" unless uri.host
+
+      # Extract and validate host before any network activity
+      host = uri.host.to_s.strip
+      raise SSRFError, "URL must include host" if host.empty?
       raise SSRFError, "URL must not include fragment" if uri.fragment
 
       uri
     end
 
     def validate_ip!(uri)
-      ip = resolve_ip(uri.host)
-      return unless forbidden_ip?(ip)
+      # Check if host is an IP address by trying to parse it
+      if uri.host =~ /^(\d{1,3}\.){3}\d{1,3}$/
+        begin
+          ip = IPAddr.new(uri.host)
+          if forbidden_ip?(ip)
+            raise SSRFError, "Request to forbidden IP address"
+          end
+        rescue IPAddr::InvalidAddressError
+          # Not a valid IP, will be handled as hostname below
+        end
+      end
 
-      raise SSRFError, "Request to forbidden IP address"
-    end
-
-    def resolve_ip(hostname)
-      IPAddr.new(Addrinfo.ip(hostname).ip_address)
-    rescue SocketError => e
-      raise SSRFError, "Failed to resolve hostname: #{e.message}"
+      # Also check resolved IPs for hostnames
+      begin
+        ips = Resolv::DNS.new.getaddresses(uri.host)
+        ips.each do |ip|
+          begin
+            ip_addr = IPAddr.new(ip.to_s)
+            if forbidden_ip?(ip_addr)
+              raise SSRFError, "Request to forbidden IP address"
+            end
+          rescue IPAddr::InvalidAddressError
+            next
+          end
+        end
+      rescue Resolv::ResolvError
+        raise SSRFError, "Could not resolve hostname"
+      end
     end
 
     def forbidden_ip?(ip)
