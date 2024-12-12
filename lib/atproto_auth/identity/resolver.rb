@@ -62,7 +62,11 @@ module AtprotoAuth
       # @raise [ValidationError] if verification fails
       def verify_pds_binding(did, pds_url)
         info = get_did_info(did)
-        normalize_url(info[:pds]) == normalize_url(pds_url)
+        if normalize_url(info[:pds]) != normalize_url(pds_url)
+          raise ValidationError, "PDS #{pds_url} is not authorized for DID #{did}"
+        end
+
+        true
       rescue StandardError => e
         raise ValidationError, "Failed to verify PDS binding: #{e.message}"
       end
@@ -82,7 +86,11 @@ module AtprotoAuth
         auth_server_url = resource_server.authorization_servers.first
 
         # Compare normalized URLs
-        normalize_url(auth_server_url) == normalize_url(issuer)
+        if normalize_url(auth_server_url) != normalize_url(issuer)
+          raise ValidationError, "Issuer #{issuer} is not authorized for DID #{did}"
+        end
+
+        true
       rescue StandardError => e
         raise ValidationError, "Failed to verify issuer binding: #{e.message}"
       end
@@ -94,7 +102,13 @@ module AtprotoAuth
       # @raise [ValidationError] if verification fails
       def verify_handle_binding(handle, did)
         info = get_did_info(did)
-        info[:document].has_handle?(handle)
+
+        unless info[:document].has_handle?(handle)
+          raise ValidationError,
+                "Handle #{handle} does not belong to DID #{did}"
+        end
+
+        true
       rescue StandardError => e
         raise ValidationError, "Failed to verify handle binding: #{e.message}"
       end
@@ -137,14 +151,7 @@ module AtprotoAuth
       def extract_domain(handle)
         # Remove @ prefix if present
         handle = handle[1..] if handle.start_with?("@")
-
-        # Handle could be user.domain.com or domain.com format
-        # We just need the domain portion
-        if handle.count(".") == 1
-          handle
-        else
-          handle.split(".", 2)[1]
-        end
+        handle
       end
 
       def fetch_txt_records(domain)

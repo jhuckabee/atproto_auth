@@ -108,9 +108,7 @@ module AtprotoAuth
       if uri.host =~ /^(\d{1,3}\.){3}\d{1,3}$/
         begin
           ip = IPAddr.new(uri.host)
-          if forbidden_ip?(ip)
-            raise SSRFError, "Request to forbidden IP address"
-          end
+          raise SSRFError, "Request to forbidden IP address" if forbidden_ip?(ip)
         rescue IPAddr::InvalidAddressError
           # Not a valid IP, will be handled as hostname below
         end
@@ -119,15 +117,11 @@ module AtprotoAuth
       # Also check resolved IPs for hostnames
       begin
         ips = Resolv::DNS.new.getaddresses(uri.host)
-        ips.each do |ip|
-          begin
-            ip_addr = IPAddr.new(ip.to_s)
-            if forbidden_ip?(ip_addr)
-              raise SSRFError, "Request to forbidden IP address"
-            end
-          rescue IPAddr::InvalidAddressError
-            next
-          end
+        ips.each do |x|
+          ip_addr = IPAddr.new(x.to_s)
+          raise SSRFError, "Request to forbidden IP address" if forbidden_ip?(ip_addr)
+        rescue IPAddr::InvalidAddressError
+          next
         end
       rescue Resolv::ResolvError
         raise SSRFError, "Could not resolve hostname"
