@@ -120,24 +120,40 @@ module AtprotoAuth
       end
 
       def request_token_refresh
-        # Generate DPoP proof for token request
+        # Initial token request without nonce
+        response = make_token_request(session)
+
+        # Handle DPoP nonce requirement
+        if requires_dpop_nonce?(response)
+          # Extract and store nonce from error response
+          extract_dpop_nonce(response)
+          dpop_client.process_response(response[:headers], auth_server.issuer)
+
+          # Retry request with nonce
+          response = make_token_request(session)
+        end
+
+        handle_refresh_response(response)
+      end
+
+      def make_token_request(session)
+        # Generate proof
         proof = dpop_client.generate_proof(
           http_method: "POST",
           http_uri: auth_server.token_endpoint
         )
 
-        # Build refresh request
         body = {
           grant_type: "refresh_token",
           refresh_token: session.tokens.refresh_token,
-          scope: session.scope
+          scope: session.scope,
+          client_id: client_metadata.client_id
         }
 
         # Add client authentication if available
         add_client_authentication!(body) if client_metadata.confidential?
 
-        # Make request
-        response = AtprotoAuth.configuration.http_client.post(
+        AtprotoAuth.configuration.http_client.post(
           auth_server.token_endpoint,
           body: body,
           headers: {
@@ -145,16 +161,34 @@ module AtprotoAuth
             "DPoP" => proof
           }
         )
+      end
 
-        handle_refresh_response(response)
+      def requires_dpop_nonce?(response)
+        return false unless response[:status] == 400
+
+        error_data = JSON.parse(response[:body])
+        error_data["error"] == "use_dpop_nonce"
+      rescue JSON::ParserError
+        false
+      end
+
+      def extract_dpop_nonce(response)
+        headers = response[:headers]
+        nonce = headers["DPoP-Nonce"] ||
+                headers["dpop-nonce"] ||
+                headers["Dpop-Nonce"]
+
+        raise TokenError, "No DPoP nonce provided in error response" unless nonce
+
+        nonce
       end
 
       def add_client_authentication!(body)
-        return unless session.client_metadata.jwks && !session.client_metadata.jwks["keys"].empty?
+        return unless client_metadata.jwks && !client_metadata.jwks["keys"].empty?
 
-        signing_key = JOSE::JWK.from_map(session.client_metadata.jwks["keys"].first)
+        signing_key = JOSE::JWK.from_map(client_metadata.jwks["keys"].first)
         client_assertion = PAR::ClientAssertion.new(
-          client_id: session.client_metadata.client_id,
+          client_id: client_metadata.client_id,
           signing_key: signing_key
         )
 
@@ -194,25 +228,31 @@ module AtprotoAuth
           sub: data["sub"]
         )
       rescue JSON::ParserError => e
-        raise RefreshError, "Invalid response format: #{e.message}"
+        raise TokenError, "Invalid response format: #{e.message}"
       end
 
       def handle_400_response(response)
         error_data = JSON.parse(response[:body])
         error_description = error_data["error_description"] || error_data["error"]
 
-        # Handle DPoP nonce requirement
-        if error_data["error"] == "use_dpop_nonce"
+        case error_data["error"]
+        when "use_dpop_nonce"
           dpop_client.process_response(response[:headers], auth_server.issuer)
-          raise RefreshError, "Retry with DPoP nonce"
+          raise TokenError.new("Retry with DPoP nonce", retry_possible: true)
+        when "invalid_grant"
+          # The refresh token has been invalidated or already used
+          raise TokenError.new(
+            "Refresh token has been invalidated: #{error_description}",
+            retry_possible: false
+          )
+        else
+          raise TokenError.new(
+            "Refresh request failed: #{error_description}",
+            retry_possible: false
+          )
         end
-
-        raise RefreshError.new(
-          "Refresh request failed: #{error_description}",
-          retry_possible: false
-        )
       rescue JSON::ParserError
-        raise RefreshError, "Invalid error response format"
+        raise TokenError, "Invalid error response format"
       end
 
       def handle_rate_limit_response(response)
@@ -224,25 +264,25 @@ module AtprotoAuth
       def validate_refresh_response!(data)
         # Required fields
         %w[access_token token_type expires_in scope sub].each do |field|
-          raise RefreshError.new("Missing #{field} in response", retry_possible: false) unless data[field]
+          raise TokenError.new("Missing #{field} in response", retry_possible: false) unless data[field]
         end
 
         # Token type must be DPoP
         unless data["token_type"] == "DPoP"
-          raise RefreshError.new("Invalid token_type: #{data["token_type"]}", retry_possible: false)
+          raise TokenError.new("Invalid token_type: #{data["token_type"]}", retry_possible: false)
         end
 
         # Scope must include original scopes
         original_scopes = session.scope.split
         response_scopes = data["scope"].split
         unless (original_scopes - response_scopes).empty?
-          raise RefreshError.new("Invalid scope in response", retry_possible: false)
+          raise TokenError.new("Invalid scope in response", retry_possible: false)
         end
 
         # Subject must match
         return if data["sub"] == session.tokens.sub
 
-        raise RefreshError.new("Subject mismatch in response", retry_possible: false)
+        raise TokenError.new("Subject mismatch in response", retry_possible: false)
       end
     end
   end
