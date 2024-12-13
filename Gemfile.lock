@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    atproto_auth (0.2.4)
+    atproto_auth (0.2.5)
       jose (~> 1.2)
       jwt (~> 2.9)
       redis (~> 5.3)

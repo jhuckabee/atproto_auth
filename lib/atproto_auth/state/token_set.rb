@@ -59,9 +59,9 @@ module AtprotoAuth
       end
 
       def validate_expires_in!(expires_in)
-        return if expires_in.is_a?(Integer) && expires_in.positive?
+        return if expires_in.is_a?(Integer)
 
-        raise ArgumentError, "expires_in must be positive integer"
+        raise ArgumentError, "expires_in must be an integer"
       end
     end
   end

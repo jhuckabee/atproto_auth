@@ -79,12 +79,12 @@ describe AtprotoAuth::State::TokenSet do
       end
     end
 
-    it "raises an error if expires_in is not a positive integer" do
-      assert_raises(ArgumentError, "expires_in must be positive integer") do
+    it "raises an error if expires_in is not an integer" do
+      assert_raises(ArgumentError, "expires_in must be an integer") do
         AtprotoAuth::State::TokenSet.new(
           access_token: access_token,
           token_type: token_type,
-          expires_in: -1,
+          expires_in: "1",
           refresh_token: refresh_token,
           scope: scope,
           sub: sub
