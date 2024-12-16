@@ -148,6 +148,7 @@ describe AtprotoAuth::State::SessionManager do
         scope: scope,
         sub: did
       )
+
       tokens.instance_variable_set(:@expires_at, Time.now - 10)
       session.tokens = tokens
 
@@ -155,6 +156,13 @@ describe AtprotoAuth::State::SessionManager do
       session_key = AtprotoAuth::Storage::KeyBuilder.session_key(session.session_id)
       serializer = AtprotoAuth::Serialization::Session.new
       storage.set(session_key, serializer.serialize(session))
+
+      # If this still fails, let's inspect what we get back
+      result = session_manager.get_session(session.session_id)
+      if result
+        flunk "Expected nil but got session with: expired=#{result.tokens&.expired?}, " \
+              "renewable=#{result.renewable?}, refresh_token=#{result.tokens&.refresh_token}"
+      end
 
       assert_nil session_manager.get_session(session.session_id)
     end

@@ -39,7 +39,7 @@ module AtprotoAuth
       # Whether this token set includes a refresh token
       # @return [Boolean]
       def renewable?
-        !@refresh_token.nil?
+        !@refresh_token.nil? && !@refresh_token.empty?
       end
 
       # Whether the access token has expired
